@@ -1,6 +1,6 @@
 "use client"
 import { initializeApp } from "firebase/app"
-import { getDatabase } from "firebase/database"
+import { getDatabase, ref } from "firebase/database"
 
 // Configuración de Firebase usando variables de entorno
 const firebaseConfig = {
@@ -13,11 +13,17 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-
+// Tipos de juegos disponibles
+export type GameType = 'memotest' | 'trivia';
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig)
 export const database = getDatabase(app)
+
+// Función para obtener la referencia a un juego específico
+export const getGameRef = (gameType: GameType) => {
+  return ref(database, `games/${gameType}/usuarios`);
+}
 
 // Función de utilidad para validar la conexión
 export const validateFirebaseConnection = () => {

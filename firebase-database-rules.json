@@ -1,24 +1,18 @@
 {
   "rules": {
-    "usuarios": {
-      ".read": true,
-      ".write": "auth != null",
-      "$userId": {
-        ".validate": "newData.hasChildren(['Nombre', 'Apellido', 'Email', 'Puntaje', 'UID'])",
-        "Nombre": {
-          ".validate": "newData.isString() && newData.val().length > 0"
-        },
-        "Apellido": {
-          ".validate": "newData.isString() && newData.val().length > 0"
-        },
-        "Email": {
-          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/)"
-        },
-        "Puntaje": {
-          ".validate": "newData.isString() && newData.val().matches(/^[0-9]+$/)"
-        },
-        "UID": {
-          ".validate": "newData.isString() && newData.val().length > 0"
+    ".read": false,
+    ".write": false,
+    "games": {
+      "memotest": {
+        "usuarios": {
+          ".read": true,
+          ".write": true
+        }
+      },
+      "trivia": {
+        "usuarios": {
+          ".read": true,
+          ".write": true
         }
       }
     }

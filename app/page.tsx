@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ref, onValue, off } from "firebase/database";
+import { useSearchParams } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -36,8 +37,11 @@ export default function ScoreboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const gameType = searchParams.get("game") || "memotest";
+
   useEffect(() => {
-    const usuariosRef = ref(database, "usuarios");
+    const usuariosRef = ref(database, `games/${gameType}/usuarios`);
 
     const unsubscribe = onValue(
       usuariosRef,
@@ -76,7 +80,7 @@ export default function ScoreboardPage() {
     );
 
     return () => off(usuariosRef, "value", unsubscribe);
-  }, []);
+  }, [gameType]);
 
   const topScore =
     usuarios.length > 0 ? Number.parseInt(usuarios[0].Puntaje) : 0;
@@ -116,11 +120,34 @@ export default function ScoreboardPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#A5B616" }}>
       <div className="container mx-auto p-4 space-y-6">
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">
-            Ranking Class
+            Ranking {gameType === "memotest" ? "Memotest" : "Trivia"}
           </h1>
           <p className="text-white/90 drop-shadow">Resultados en tiempo real</p>
+
+          <div className="flex justify-center gap-4">
+            <a
+              href="/?game=memotest"
+              className={`px-6 py-2 rounded-full transition-all ${
+                gameType === "memotest"
+                  ? "bg-white text-green-800 shadow-lg"
+                  : "bg-white/20 text-white hover:bg-white/30"
+              }`}
+            >
+              Memotest
+            </a>
+            <a
+              href="/?game=trivia"
+              className={`px-6 py-2 rounded-full transition-all ${
+                gameType === "trivia"
+                  ? "bg-white text-green-800 shadow-lg"
+                  : "bg-white/20 text-white hover:bg-white/30"
+              }`}
+            >
+              Trivia
+            </a>
+          </div>
         </div>
 
         <Card className="bg-white/95 backdrop-blur-sm shadow-lg">
