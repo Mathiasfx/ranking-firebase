@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { ref, onValue, off } from "firebase/database";
 import { useSearchParams } from "next/navigation";
 import {
@@ -32,7 +32,7 @@ interface Usuario {
   UID: string;
 }
 
-export default function ScoreboardPage() {
+function ScoreboardContent() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -248,5 +248,22 @@ export default function ScoreboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ScoreboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto p-4 space-y-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Cargando...</p>
+          </div>
+        </div>
+      }
+    >
+      <ScoreboardContent />
+    </Suspense>
   );
 }
