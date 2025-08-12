@@ -53,10 +53,11 @@ export default function ScoreboardPage() {
                 id,
                 ...(userData as Omit<Usuario, "id">),
               }))
-              .sort(
-                (a, b) =>
-                  Number.parseInt(b.Puntaje) - Number.parseInt(a.Puntaje)
-              );
+              .sort((a, b) => {
+                const puntajeA = parseFloat(a.Puntaje) || 0;
+                const puntajeB = parseFloat(b.Puntaje) || 0;
+                return puntajeB - puntajeA;
+              });
 
             setUsuarios(usuariosArray);
           } else {
