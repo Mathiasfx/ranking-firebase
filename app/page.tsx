@@ -47,32 +47,32 @@ interface Usuario {
 
 // Función para convertir datos a CSV
 function convertToCSV(data: Usuario[]): string {
-  // Encabezados CSV
-  const headers = ["Posición", "Nombre", "Apellido", "Email", "Puntaje"];
+  // Encabezados CSV - Nombre como primera columna
+  const headers = ["Nombre", "Apellido", "Email", "Puntaje", "Posición"];
   
-  // Filas de datos
+  // Filas de datos - Nombre como primera columna
   const rows = data.map((user, index) => [
-    (index + 1).toString(),
     user.Nombre,
     user.Apellido,
     user.Email,
-    user.Puntaje
+    user.Puntaje,
+    (index + 1).toString()
   ]);
   
   // Unir encabezados y filas
   const allRows = [headers, ...rows];
   
-  // Convertir a formato CSV (escapando comas y agregando comillas a campos con comas)
+  // Convertir a formato CSV usando ";" como separador
   return allRows
     .map(row => 
       row.map(field => {
-        // Si el campo contiene comas, comillas o saltos de línea, encerrarlo en comillas
-        if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+        // Si el campo contiene punto y coma, comillas o saltos de línea, encerrarlo en comillas
+        if (field.includes(';') || field.includes('"') || field.includes('\n')) {
           // Escapar comillas duplicándolas
           return `"${field.replace(/"/g, '""')}"`;
         }
         return field;
-      }).join(',')
+      }).join(';')
     )
     .join('\n');
 }
