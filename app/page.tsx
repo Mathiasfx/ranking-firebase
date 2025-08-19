@@ -17,11 +17,24 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy } from "lucide-react";
+import { Trophy, Settings, Download } from "lucide-react";
 import { database } from "@/lib/firebase";
 import { FirebaseStatus } from "@/components/firebase-status";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Usuario {
   id: string;
@@ -30,6 +43,118 @@ interface Usuario {
   Email: string;
   Puntaje: string;
   UID: string;
+}
+
+// Función para convertir datos a CSV
+function convertToCSV(data: Usuario[]): string {
+  // Encabezados CSV
+  const headers = ["Posición", "Nombre", "Apellido", "Email", "Puntaje"];
+  
+  // Filas de datos
+  const rows = data.map((user, index) => [
+    (index + 1).toString(),
+    user.Nombre,
+    user.Apellido,
+    user.Email,
+    user.Puntaje
+  ]);
+  
+  // Unir encabezados y filas
+  const allRows = [headers, ...rows];
+  
+  // Convertir a formato CSV (escapando comas y agregando comillas a campos con comas)
+  return allRows
+    .map(row => 
+      row.map(field => {
+        // Si el campo contiene comas, comillas o saltos de línea, encerrarlo en comillas
+        if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+          // Escapar comillas duplicándolas
+          return `"${field.replace(/"/g, '""')}"`;
+        }
+        return field;
+      }).join(',')
+    )
+    .join('\n');
+}
+
+// Componente para descargar CSV
+function DownloadCSV({ usuarios, gameType }: { usuarios: Usuario[], gameType: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { toast } = useToast();
+
+  const handleDownload = () => {
+    // Verificar contraseña
+    if (password !== "admin123") {
+      setError("Contraseña incorrecta");
+      return;
+    }
+    
+    setError("");
+    
+    // Convertir a CSV
+    const csvContent = convertToCSV(usuarios);
+    
+    // Crear Blob y enlace de descarga
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Configurar y simular clic en enlace de descarga
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ranking-${gameType}-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Cerrar diálogo y mostrar notificación
+    setIsOpen(false);
+    setPassword("");
+    toast({
+      title: "Descarga iniciada",
+      description: `El archivo CSV del ranking de ${gameType} se está descargando.`,
+    });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button 
+          variant="default" 
+          size="icon" 
+          className="rounded-full h-12 w-12 shadow-lg hover:scale-110 transition-transform" 
+          title="Administración"
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Descargar Ranking</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña de administrador</Label>
+            <Input 
+              id="password" 
+              type="password" 
+              placeholder="Ingrese la contraseña" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleDownload} className="gap-2">
+            <Download className="h-4 w-4" />
+            Descargar CSV
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function ScoreboardContent() {
@@ -118,7 +243,7 @@ function ScoreboardContent() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#A5B616" }}>
+    <div className="min-h-screen relative" style={{ backgroundColor: "#A5B616" }}>
       <div className="container mx-auto p-4 space-y-6">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">
@@ -246,6 +371,11 @@ function ScoreboardContent() {
             ))}
           </div>
         </div>
+      </div>
+      
+      {/* Botón de descarga en la esquina inferior derecha */}
+      <div className="fixed bottom-6 right-6 z-10">
+        <DownloadCSV usuarios={usuarios} gameType={gameType} />
       </div>
     </div>
   );
